@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>まいにち♡めるべる</title>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px 16px;
+      font-family: sans-serif;
+      background: #fff2f8;
+      color: #994875;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #d74791;
+      font-size: 28px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 18px;
+      margin-top: 25px;
+      box-shadow: 0 4px 15px #e9b8d055;
+    }
+
+    .coin {
+      font-size: 40px;
+      margin: 12px;
+    }
+
+    button {
+      width: 100%;
+      padding: 18px;
+      background: #d74791;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #dfb4cc;
+    }
+
+    .small {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #96758a;
+    }
+
+    #error {
+      color: #c53359;
+      font-size: 14px;
+      margin-top: 16px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🎀 まいにち♡めるべる 🎀</h1>
+
+  <p>MellBell公式LINE限定企画</p>
+
+  <div class="card">
+
+    <div class="coin">🪙</div>
+
+    <h2>毎日ログインでコインGET！</h2>
+
+    <p class="small">
+      毎日ログインで2コイン<br>
+      7日連続ログインで追加5コイン
+    </p>
+
+    <p class="small">
+      1連ガチャ：5コイン<br>
+      10連＋1回無料：50コイン
+    </p>
+
+    <button id="start" disabled>
+      読み込み中…
+    </button>
+
+    <div id="error"></div>
+
+  </div>
+
+  <p class="small">
+    コインを貯めてガチャに挑戦♡<br>
+    何が当たるかはお楽しみ！
+  </p>
+
+</div>
+
+<script>
+
+  // LINEのLIFF ID
+  const LIFF_ID = 'REPLACE_WITH_LIFF_ID';
+
+  // Google Apps ScriptのウェブアプリURL
+  const GAS_WEBAPP_URL =
+    'REPLACE_WITH_GAS_WEBAPP_EXEC_URL';
+
+  const button = document.getElementById('start');
+
+  const errorBox = document.getElementById('error');
+
+  async function initialize() {
+
+    try {
+
+      await liff.init({
+        liffId: LIFF_ID
+      });
+
+      if (!liff.isLoggedIn()) {
+
+        liff.login({
+          redirectUri:
+            window.location.href.split('#')[0]
+        });
+
+        return;
+      }
+
+      const idToken = liff.getIDToken();
+
+      if (!idToken) {
+        throw new Error(
+          'LINEログインのopenid権限を確認してください'
+        );
+      }
+
+      button.disabled = false;
+      button.textContent = 'ガチャを開く 🎰';
+
+      button.onclick = function() {
+
+        button.disabled = true;
+        button.textContent = 'ガチャを開いています…';
+
+        const form = document.createElement('form');
+
+        form.method = 'POST';
+        form.action = GAS_WEBAPP_URL;
+
+        const input = document.createElement('input');
+
+        input.type = 'hidden';
+        input.name = 'id_token';
+        input.value = idToken;
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+
+        form.submit();
+
+      };
+
+    } catch (error) {
+
+      errorBox.textContent =
+        '起動に失敗しました：' + error.message;
+
+      button.textContent = '接続できませんでした';
+    }
+
+  }
+
+  initialize();
+
+</script>
+
+</body>
+</html>
